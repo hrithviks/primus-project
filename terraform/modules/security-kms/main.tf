@@ -9,7 +9,7 @@ resource "aws_kms_key" "main" {
   description             = var.kms_description
   deletion_window_in_days = var.kms_deletion_window_in_days
   enable_key_rotation     = var.kms_enable_key_rotation
-  policy                  = data.aws_iam_policy_document.main.json
+  policy                  = var.kms_policy != null ? var.kms_policy : data.aws_iam_policy_document.main.json
 }
 
 resource "aws_kms_alias" "main" {

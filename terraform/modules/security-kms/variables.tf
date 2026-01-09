@@ -34,3 +34,9 @@ variable "kms_account_region" {
   type        = string
   description = "The region to use for the KMS key"
 }
+
+variable "kms_policy" {
+  type        = string
+  description = "Optional JSON policy for the KMS key. If not provided, a default policy is generated."
+  default     = null
+}
