@@ -84,9 +84,9 @@ locals {
 module "iam_flow_log_role" {
   source = "../identity-roles"
 
-  iam_role_name               = "${var.vpc_flow_log_prefix}-vpc-flow-log-role"
-  iam_role_description        = "The IAM role for VPC Flow Log ${var.vpc_flow_log_prefix}"
-  iam_role_assume_role_policy = jsonencode(local.vpc_flow_log_iam_role_trust_policy)
+  iam_role_name         = "${var.vpc_flow_log_prefix}-vpc-flow-log-role"
+  iam_role_description  = "The IAM role for VPC Flow Log ${var.vpc_flow_log_prefix}"
+  iam_role_trust_policy = jsonencode(local.vpc_flow_log_iam_role_trust_policy)
 }
 
 # Invokes IAM policies module to create a new IAM policy for VPC Flow Logs and attach to the role
