@@ -1,0 +1,11 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowUsersToAssumeNamespaceAdminRole",
+            "Effect": "Allow",
+            "Action": "sts:AssumeRole",
+            "Resource": "${ROLE_ARN}"
+        }
+    ]
+}

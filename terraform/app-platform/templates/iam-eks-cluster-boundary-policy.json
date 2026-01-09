@@ -1,0 +1,25 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowEKSClusterPolicy",
+            "Effect": "Allow",
+            "Action": "*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "DenyResourcesOutsideVPC",
+            "Effect": "Deny",
+            "Action": [
+                "ec2:CreateNetworkInterface",
+                "ec2:CreateSecurityGroup"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringNotEquals": {
+                    "ec2:Vpc": "${VPC_ID}"
+                }
+            }
+        }
+    ]
+}
