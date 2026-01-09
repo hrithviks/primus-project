@@ -1,0 +1,38 @@
+[
+    {
+        "name": "${NAME}",
+        "image": "${IMAGE}",
+        "essential": true,
+        "portMappings": [
+            {
+                "containerPort": 9600
+            },
+            {
+                "containerPort": 8080
+            }
+        ],
+        "environment": [
+            {
+                "name": "OPENSEARCH_HOSTS",
+                "value": "${OPENSEARCH_HOSTS}"
+            },
+            {
+                "name": "HTTP_HOST",
+                "value": "0.0.0.0"
+            }
+        ],
+        "command": [
+            "logstash",
+            "-e",
+            "input { http { port => 8080 } } filter { if [headers][user_agent] =~ \"ELB-HealthChecker\" { drop {} } } output { opensearch { hosts => [\"${OPENSEARCH_HOSTS}\"] ssl => false index => \"logstash-%%{+YYYY.MM.dd}\" ecs_compatibility => disabled manage_template => false } stdout { codec => rubydebug } }"
+        ],
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "${LOG_GROUP}",
+                "awslogs-region": "${REGION}",
+                "awslogs-stream-prefix": "${STREAM_PREFIX}"
+            }
+        }
+    }
+]
