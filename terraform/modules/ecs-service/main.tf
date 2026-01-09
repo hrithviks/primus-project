@@ -65,11 +65,18 @@ resource "aws_ecs_service" "main" {
   # Load Balancer configuration
   # Add more details here on implementation
   dynamic "load_balancer" {
-    for_each = var.ecs_target_group_arn != null ? [1] : []
+    for_each = concat(
+      var.ecs_target_group_arn != null ? [{
+        target_group_arn = var.ecs_target_group_arn
+        container_port   = var.ecs_container_port
+        container_name   = var.ecs_name
+      }] : [],
+      var.ecs_load_balancers
+    )
     content {
-      target_group_arn = var.ecs_target_group_arn
-      container_name   = var.ecs_name
-      container_port   = var.ecs_container_port
+      target_group_arn = load_balancer.value.target_group_arn
+      container_name   = coalesce(load_balancer.value.container_name, var.ecs_name)
+      container_port   = load_balancer.value.container_port
     }
   }
 }

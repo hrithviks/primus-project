@@ -107,3 +107,13 @@ variable "ecs_health_check_grace_period_seconds" {
   type        = number
   default     = 0
 }
+
+variable "ecs_load_balancers" {
+  description = "List of load balancer configurations. Used when multiple target groups need to be attached."
+  type = list(object({
+    target_group_arn = string
+    container_port   = number
+    container_name   = optional(string)
+  }))
+  default = []
+}
