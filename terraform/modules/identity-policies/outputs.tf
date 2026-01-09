@@ -1,8 +1,14 @@
 /*
- * Script Name  : main.tf
+ * Script Name  : outputs.tf
  * Project Name : Primus
- * Description  : Defines the output configuration for the Terraform project.
+ * Description  : Exports key identifiers of the created IAM Policy.
+ *                These outputs are essential for attaching the policy to other entities
+ *                (users, groups, roles) outside of this module or for auditing purposes.
  * Scope        : Module (IAM/Policy)
+ *
+ * Output Details:
+ * - Policy ARN        : The Amazon Resource Name, required for attachments.
+ * - Policy Name       : The friendly name of the policy.
  */
 
 output "iam_policy_name" {

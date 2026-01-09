@@ -1,8 +1,14 @@
 /*
  * Script Name  : outputs.tf
  * Project Name : Primus
- * Description  : Exposes IAM Role attributes (ARN, Name, ID).
+ * Description  : Exports key identifiers of the created IAM Role.
+ *                These outputs are used to attach policies or reference the role in other resources.
  * Scope        : Module (IAM Role)
+ *
+ * Output Details:
+ * - Role ARN          : The Amazon Resource Name, used for cross-account access or resource policies.
+ * - Role Name         : The friendly name, used for policy attachments.
+ * - Role ID           : The unique identifier.
  */
 
 output "iam_role_arn" {
