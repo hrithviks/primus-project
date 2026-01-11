@@ -21,11 +21,6 @@ output "vpc_id" {
   value       = module.main_vpc.vpc_id
 }
 
-output "opensearch_secret_arn" {
-  description = "The ARN of the Secrets Manager secret containing the OpenSearch initial admin password."
-  value       = aws_secretsmanager_secret.opensearch_admin_password.arn
-}
-
 output "opensearch_endpoint" {
   description = "The public HTTP endpoint for the OpenSearch API."
   value       = "http://${module.app_load_balancer.alb_dns_name}:9200"

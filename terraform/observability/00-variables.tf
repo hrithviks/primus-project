@@ -80,3 +80,17 @@ variable "network_availability_zones" {
     error_message = "Availability zones must be 'ap-southeast-1a', 'ap-southeast-1b' or 'ap-southeast-1c'."
   }
 }
+
+/*
+ECS Section
+*/
+
+variable "ecs_os_secret_enc_id" {
+  type        = string
+  description = "The ID for the key manager resource used to encrypt the admin secret"
+}
+
+variable "ecs_os_secret_name" {
+  type        = string
+  description = "The name of the secret containing the admin password for OpenSearch"
+}

@@ -33,6 +33,10 @@
  *   or source code. ECS retrieves the secret directly at runtime.
  */
 
+/*
+Moving Key and Secret to central management outside of Terraform, due to errors
+during apply phase
+
 resource "random_password" "opensearch_admin_password" {
   length           = 16
   special          = true
@@ -46,7 +50,7 @@ resource "random_password" "opensearch_admin_password" {
 # Force delete the secret using AWS CLI before re-creating.
 # aws secretsmanager delete-secret --secret-id "Secret_ID" --force-delete-without-recovery
 resource "aws_secretsmanager_secret" "opensearch_admin_password" {
-  name        = "${local.RESOURCE_PREFIX}-opensearch-admn-pswd"
+  name        = "${local.RESOURCE_PREFIX}-os-admin-pswd"
   description = "Initial admin password for OpenSearch"
   kms_key_id  = module.storage_kms_key.kms_key_arn
 }
@@ -54,6 +58,16 @@ resource "aws_secretsmanager_secret" "opensearch_admin_password" {
 resource "aws_secretsmanager_secret_version" "opensearch_admin_password" {
   secret_id     = aws_secretsmanager_secret.opensearch_admin_password.id
   secret_string = random_password.opensearch_admin_password.result
+}
+*/
+
+# Import existing Key and Secret
+data "aws_kms_key" "opensearch_secrets_key" {
+  key_id = var.ecs_os_secret_enc_id
+}
+
+data "aws_secretsmanager_secret" "opensearch_admin_password" {
+  name = var.ecs_os_secret_name
 }
 
 /*
@@ -88,8 +102,9 @@ module "ecs_opensearch_exec_role_policy" {
   iam_policy_description = local.ECS_OS_EXEC_POLICY_DESC
 
   iam_policy_document = templatefile("./templates/opensearch/ecs-os-execution-role.json", {
-    SECRET_ARN  = aws_secretsmanager_secret.opensearch_admin_password.arn
-    KMS_KEY_ARN = module.storage_kms_key.kms_key_arn
+    # Managed Secret and Key
+    SECRET_ARN  = data.aws_secretsmanager_secret.opensearch_admin_password.arn
+    KMS_KEY_ARN = data.aws_kms_key.opensearch_secrets_key.arn
   })
 
   iam_policy_attachment_role_name = module.ecs_opensearch_exec_role.iam_role_name
@@ -150,6 +165,10 @@ module "ecs_opensearch_task_role_policy" {
  *   independent of the container lifecycle.
  */
 
+locals {
+  ADMIN_PASSWORD_ARN = "${data.aws_secretsmanager_secret.opensearch_admin_password.arn}:OPENSEARCH_INITIAL_ADMIN_PASSWORD::"
+}
+
 module "opensearch" {
   source = "../modules/ecs-service"
 
@@ -173,7 +192,7 @@ module "opensearch" {
     LOG_GROUP      = aws_cloudwatch_log_group.ecs_log_group.name
     REGION         = local.AWS_REGION
     STREAM_PREFIX  = local.ECS_OPENSEARCH_NAME
-    ADMIN_PSWD_ARN = aws_secretsmanager_secret.opensearch_admin_password.arn
+    ADMIN_PSWD_ARN = local.ADMIN_PASSWORD_ARN
   })
 
   ecs_volume_config = {
