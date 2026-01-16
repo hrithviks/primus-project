@@ -32,7 +32,10 @@ resource "kubernetes_namespace_v1" "admin" {
     }
   }
 
-  depends_on = [aws_eks_access_policy_association.main]
+  depends_on = [
+    aws_eks_access_policy_association.main,
+    aws_eks_node_group.main
+  ]
 }
 
 /*
@@ -113,5 +116,9 @@ resource "kubernetes_storage_class_v1" "gp3" {
   parameters = {
     type = "gp3"
   }
-  depends_on = [aws_eks_access_policy_association.main]
+  depends_on = [
+    aws_eks_access_policy_association.main,
+    aws_eks_node_group.main,
+    aws_eks_addon.ebs_csi_driver
+  ]
 }

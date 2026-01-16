@@ -214,7 +214,9 @@ resource "helm_release" "cloudwatch_agent" {
   depends_on = [
     aws_eks_node_group.main,
     aws_eks_access_policy_association.main,
-    aws_eks_addon.coredns
+    aws_eks_addon.coredns,
+    module.alb_controller_role,
+    module.alb_controller_policy
   ]
 }
 
@@ -265,7 +267,9 @@ resource "helm_release" "prometheus" {
     kubernetes_namespace_v1.admin,
     aws_eks_node_group.main,
     aws_eks_addon.coredns,
-    helm_release.alb_controller
+    helm_release.alb_controller,
+    aws_eks_addon.ebs_csi_driver,
+    kubernetes_storage_class_v1.gp3
   ]
 }
 
@@ -335,6 +339,9 @@ resource "helm_release" "grafana" {
     kubernetes_namespace_v1.admin,
     helm_release.prometheus,
     aws_eks_node_group.main,
-    aws_eks_addon.coredns
+    aws_eks_addon.coredns,
+    helm_release.alb_controller,
+    module.alb_controller_role,
+    module.alb_controller_policy
   ]
 }

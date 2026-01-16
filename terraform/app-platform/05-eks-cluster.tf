@@ -77,7 +77,8 @@ resource "aws_eks_cluster" "main" {
 
   depends_on = [
     module.eks_cluster_role,
-    aws_cloudwatch_log_group.eks_cluster
+    aws_cloudwatch_log_group.eks_cluster,
+    module.main_vpc
   ]
 }
 
@@ -132,7 +133,8 @@ resource "aws_eks_node_group" "main" {
   }
 
   depends_on = [
-    module.eks_node_group_role
+    module.eks_node_group_role,
+    module.main_vpc
   ]
 
   tags = {
