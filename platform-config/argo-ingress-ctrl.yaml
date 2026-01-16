@@ -1,0 +1,44 @@
+# -----------------------------------------------------------------------------
+# Manifest Name: argo-ingress-ctrl.yaml
+# Description  : Defines the Ingress resource for external access to the ArgoCD UI.
+#                Utilizes the AWS Load Balancer Controller to provision an Application
+#                Load Balancer (ALB).
+# Prerequisites:
+#   1. AWS Load Balancer Controller must be installed in the cluster.
+#   2. A valid ACM Certificate ARN is required for HTTPS termination.
+# -----------------------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server
+  namespace: primus-argocd
+  annotations:
+    # -------------------------------------------------------------------------
+    # AWS Load Balancer Controller Configuration
+    # Documentation: https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/ingress/annotations/
+    #
+    # - load-balancer-name: Sets a custom name for the ALB.
+    # - scheme: Provisions an 'internet-facing' ALB. Use 'internal' for private access.
+    # - target-type: 'ip' mode routes traffic directly to Pod IPs (required for Fargate).
+    # - backend-protocol: 'HTTPS' is used to communicate with the self-signed ArgoCD backend.
+    # - healthcheck: Managed automatically. Use 'healthcheck-path' to override (e.g., '/healthz').
+    # - certificate-arn: [REQUIRED] The ACM Certificate ARN for HTTPS termination.
+    # -------------------------------------------------------------------------
+    alb.ingress.kubernetes.io/load-balancer-name: argocd-endpoint
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/backend-protocol: HTTPS
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:REGION:ACCOUNT:certificate/ID
+spec:
+  # Designates the AWS Load Balancer Controller as the ingress controller.
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 443
