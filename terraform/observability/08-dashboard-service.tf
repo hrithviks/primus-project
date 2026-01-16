@@ -110,6 +110,37 @@ module "ecs_dashboards_task_role_policy" {
  *   must be aware of this prefix to generate correct internal links and assets.
  */
 
+/*
+ * -----------------------------------
+ * SERVICE PRODUCTION READINESS REVIEW
+ * -----------------------------------
+ * The current implementation represents a functional configuration suitable for
+ * development or proof-of-concept environments. For a production-grade deployment,
+ * the following architectural gaps must be addressed to ensure security, stability, and scale:
+ *
+ * 1. Security & Access Control:
+ * - Public Exposure: The service is exposed via a public ALB. While Security Groups restrict
+ * ports, the application login page is accessible to the internet. Production setups should
+ * place this behind a VPN or use AWS ALB Authentication (OIDC/Cognito) to pre-authenticate
+ * users before traffic reaches the container.
+ * - Transport Encryption: Traffic from ALB to Container is HTTP. End-to-end encryption (HTTPS)
+ * should be enforced to protect session cookies and credentials.
+ *
+ * 2. High Availability:
+ * - Session Management: If scaled beyond one replica, Dashboards requires sticky sessions (ALB)
+ * or a shared session store (OpenSearch indices) to prevent users from being logged out
+ * during requests.
+ *
+ * 3. Configuration Management:
+ * - Hardcoded Config: Configuration is baked into the container or passed via ENV vars.
+ * Complex setups (multi-tenancy, reporting) require mounting a custom `opensearch_dashboards.yml`
+ * via EFS or S3 to manage advanced settings without rebuilding images.
+ *
+ * 4. Cold Starts:
+ * - Startup Latency: Fargate tasks take time to launch. If the service scales aggressively,
+ * users may experience delays. Mitigation includes scheduled scaling actions to
+ * pre-warm the service before peak usage hours.
+ */
 module "dashboards" {
   source = "../modules/ecs-service"
 

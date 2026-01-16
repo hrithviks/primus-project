@@ -22,7 +22,7 @@
             },
             {
                 "name": "plugins.security.disabled",
-                "value": "false"
+                "value": "true"
             }
         ],
         "secrets": [

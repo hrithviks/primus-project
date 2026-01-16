@@ -165,6 +165,37 @@ module "ecs_opensearch_task_role_policy" {
  *   independent of the container lifecycle.
  */
 
+/*
+ * -----------------------------------
+ * SERVICE PRODUCTION READINESS REVIEW
+ * -----------------------------------
+ * The current implementation represents a functional configuration suitable for
+ * development or proof-of-concept environments. For a production-grade deployment,
+ * the following architectural gaps must be addressed to ensure security, stability, and scale:
+ *
+ * 1. Storage Performance & Reliability:
+ * - EFS Latency: While EFS provides easy persistence, it introduces higher I/O latency compared
+ * to EBS (gp3/io2). For high-throughput indexing, this can become a significant bottleneck.
+ * - Single Point of Failure: The current configuration deploys a monolithic node type. Production
+ * clusters should separate 'Master' (cluster state) and 'Data' (indexing) roles into distinct
+ * ECS services or Node Groups to prevent indexing pressure from destabilizing the cluster.
+ *
+ * 2. Security:
+ * - No TLS/SSL: The cluster communicates over plain HTTP. Production standards require TLS for
+ * both the REST API (Node-to-Client) and the Transport Layer (Node-to-Node).
+ * - Basic Auth Only: Reliance on a single admin password is risky. Integration with an Identity
+ * Provider (IdP) via SAML/OIDC or AWS Cognito is recommended for granular user access control.
+ *
+ * 3. Operational Stability:
+ * - Memory Locking: OpenSearch requires disabling swap for stability (`bootstrap.memory_lock`).
+ * Fargate has limitations on `ulimit` modifications, often requiring specific sidecar
+ * configurations or EC2-backed ECS to strictly enforce memory locking.
+ *
+ * 4. Cold Starts:
+ * - Recovery Time: Fargate tasks incur startup latency. For a stateful cluster, this extends
+ * recovery time during node replacement. Mitigation involves maintaining a minimum
+ * healthy percentage or using EC2-backed ECS where images can be cached on the host.
+ */
 locals {
   ADMIN_PASSWORD_ARN = "${data.aws_secretsmanager_secret.opensearch_admin_password.arn}:OPENSEARCH_INITIAL_ADMIN_PASSWORD::"
 }

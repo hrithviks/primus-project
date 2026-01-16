@@ -110,6 +110,37 @@ module "ecs_logstash_task_role_policy" {
  *   (e.g., in the source queue or destination), allowing easy replacement.
  */
 
+/*
+ * -----------------------------------
+ * SERVICE PRODUCTION READINESS REVIEW
+ * -----------------------------------
+ * The current implementation represents a functional configuration suitable for
+ * development or proof-of-concept environments. For a production-grade deployment,
+ * the following architectural gaps must be addressed to ensure security, stability, and scale:
+ *
+ * 1. Scalability & Resilience:
+ * - Lack of Auto-Scaling: The service runs with a fixed task count. Production setups should
+ * implement AWS Application Auto Scaling policies based on CPU/Memory utilization or
+ * custom metrics (e.g., queue depth) to handle bursty log traffic.
+ * - No Persistent Buffering: There is no intermediate buffer (e.g., Kafka, Redis, Kinesis)
+ * before Logstash. If the pipeline is overwhelmed or OpenSearch is down, logs held in
+ * memory will be lost upon container restart.
+ *
+ * 2. Security:
+ * - Transport Encryption: Traffic between Logstash and OpenSearch is currently HTTP (port 9200).
+ * Production environments must enforce HTTPS/TLS to prevent data interception within the VPC.
+ * - Input Validation: The HTTP input (port 8080) lacks authentication. Any resource inside the
+ * VPC can push data. Implementation of token-based auth or mutual TLS (mTLS) is recommended.
+ *
+ * 3. Performance:
+ * - JVM Tuning: The container definition uses default Java heap settings. These should be
+ * explicitly tuned (Xms/Xmx) to match the Fargate task memory limits to prevent OOM kills.
+ *
+ * 4. Cold Starts:
+ * - Fargate Latency: Serverless tasks incur startup latency (image pull, ENI attachment).
+ * Mitigation strategies include optimizing container image sizes or maintaining a
+ * minimum baseline of running tasks to absorb immediate traffic spikes.
+ */
 module "logstash" {
   source = "../modules/ecs-service"
 
